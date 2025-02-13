@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:    
+  cbo_db:
+    container_name: cbo_db
+    image: postgres:15
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: postgres
+      POSTGRES_DB: cbo_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  buscador_solr:
+    container_name: buscador_solr
+    build:
+      context: .
+      dockerfile: solr.Dockerfile
+    ports:
+      - "8983:8983"  
+
+volumes:
+  pgdata: {}
