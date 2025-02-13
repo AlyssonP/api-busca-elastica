@@ -27,5 +27,5 @@ Esse comando irá iniciar os seguintes containers:
 
 ## Desenvolvedores
 
-[Alysson Pereira]()
+[Alysson Pereira](),
 [Vivaldo Vítor]()
