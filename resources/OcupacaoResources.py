@@ -3,32 +3,39 @@ from flask import request
 import csv
 import json
 import requests
+import io
 
 from helpers.database import db
 from models.Ocupacao import Ocupacao
 from helpers.config import URL_SOLR
 
-def dataset_ocupacao_csv(path):
+def dataset_ocupacao_csv(file):
     data = []
-    with open(path, encoding="ISO-8859-1") as csv_file:
-        read = csv.reader(csv_file)
-        next(read, None)
-        print(type(read))
-        for row in read:
-            spliter = row[0].split(";")
-            data.append(Ocupacao(
-                id=int(spliter[0]),
-                titulo=str(spliter[1])
-                ))
+    stream = io.StringIO(file.stream.read().decode("ISO-8859-1"))
+    reader = csv.reader(stream)
+    next(reader, None)
+    for row in reader:
+        spliter = row[0].split(";")
+        data.append(Ocupacao(
+            id=int(spliter[0]),
+            titulo=str(spliter[1])
+        ))
     return data
 
 class InsertOcupacoes(Resource):
     def post(self):
+        if "file" not in request.files:
+            return {"message":"Arquivo não enviado em file!"}, 400
+        
         if(len(Ocupacao.query.all())>0):
             return {"message":"Os dados já foram inseridos"}, 409
         
-        ocupacoes = dataset_ocupacao_csv("/home/alyssonp/gcsi20242/app-busca-elastica/CBO2002 - Ocupacao.csv")
+        file = request.files["file"]
+        if(file.filename == ""):
+            return {"message": "Não selecionado"}, 400
+        
         try:
+            ocupacoes = dataset_ocupacao_csv(file)
             db.session.add_all(ocupacoes)
             db.session.commit()
             return {"message":"Dados inseridos com sucesso!"}, 200
@@ -57,7 +64,7 @@ class UpSolr(Resource):
 
 class BuscadorOcupacoes(Resource):
     def get(self):
-        termo = request.args.get("q", "*:*")  # Pega o termo da query string
+        termo = request.args.get("q", "*:*")
         params = {
             "q": termo+"~",
             "wt": "json"
