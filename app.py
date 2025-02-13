@@ -6,7 +6,7 @@ from helpers.api import api
 import models
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:123456@127.0.0.0:5431/cbo_db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:123456@cbo_db:5431/cbo_db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app=app)
