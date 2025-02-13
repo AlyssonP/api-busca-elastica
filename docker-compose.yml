@@ -21,5 +21,19 @@ services:
     ports:
       - "8983:8983"  
 
+  api_flask:
+    container_name: api_busca
+    build:
+      context: .
+      dockerfile: api.Dockerfile 
+    ports:
+      - "5000:5000"
+    depends_on:
+      - cbo_db       
+      - buscador_solr 
+    environment:
+      - DATABASE_URL=postgresql://postgres:123456@cbo_db:5432/cbo_db  
+      - SOLR_URL=http://solr:8000/solr/cbo_ocupacao_core 
+
 volumes:
   pgdata: {}
