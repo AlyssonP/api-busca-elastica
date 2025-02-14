@@ -7,7 +7,7 @@ import io
 
 from helpers.database import db
 from models.Ocupacao import Ocupacao
-from helpers.config import URL_SOLR
+from helpers.config.solr import URL_SOLR
 
 def dataset_ocupacao_csv(file):
     data = []
@@ -50,9 +50,10 @@ class UpSolr(Resource):
 
         ocupacoes = []
         for ocupacao  in Ocupacao.query.all():
-            ocupacoes.append({"id":ocupacao.id, "titulo":ocupacao.titulo, "full": f"{ocupacao.id} {ocupacao.titulo}"})
+            ocupacoes.append({"id":ocupacao.id, "titulo":ocupacao.titulo})
 
         SOLR_URL = f"{URL_SOLR}/update?commit=true"
+        print(SOLR_URL)
 
         headers = {"Content-Type": "application/json"}
         response = requests.post(SOLR_URL, data=json.dumps(ocupacoes), headers=headers)

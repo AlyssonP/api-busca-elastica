@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:    
   cbo_db:
     container_name: cbo_db
@@ -13,13 +11,32 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  buscador_solr:
-    container_name: buscador_solr
+  solr:
+    container_name: solr
+    image: solr
+    ports:
+     - "8983:8983"
+    volumes:
+      - data_solar:/var/solr
+    command:
+      - solr-precreate
+      - cbo
+
+  api_busca:
+    container_name: api_busca
     build:
       context: .
-      dockerfile: solr.Dockerfile
+      dockerfile: api.Dockerfile
+    image: api_busca
     ports:
-      - "8983:8983"  
+      - "5050:5000"
+    volumes:
+      - ./:/app
+    environment:
+      - env=production
+    depends_on:
+      - cbo_db
 
 volumes:
   pgdata: {}
+  data_solar:
