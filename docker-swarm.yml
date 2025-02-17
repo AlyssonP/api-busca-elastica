@@ -42,14 +42,13 @@ services:
     container_name: api_busca
     build:
       context: .
-      dockerfile: api.Dockerfile
+      dockerfile: ../api.Dockerfile
     image: api_busca
     deploy:
+      mode: replicated
       replicas: 3
-      condition: on-failure
-      placement:
-        constraints:
-          - "node.role==worker"  # Esse serviço pode rodar apenas nos workers
+      restart_policy:
+        condition: on-failure
     networks:
       - app_network
     ports:
