@@ -1,0 +1,71 @@
+services:    
+  cbo_db:
+    container_name: cbo_db
+    image: postgres:15
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - "node.role==manager"  # Banco de dados só no nó manager
+    networks:
+      - app_network
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: postgres
+      POSTGRES_DB: cbo_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # solr:
+  #   container_name: solr
+  #   image: solr
+  #   deploy:
+  #     replicas: 1
+  #     placement:
+  #       constraints:
+  #         - "node.role==manager"
+  #   networks:
+  #     - app_network
+  #   ports:
+  #    - "8983:8983"
+  #   volumes:
+  #     - data_solar:/var/solr
+  #   command:
+  #     - solr-precreate
+  #     - cbo
+
+  api_busca:
+    container_name: api_busca
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    image: api_busca
+    deploy:
+      replicas: 3
+      condition: on-failure
+      placement:
+        constraints:
+          - "node.role==worker"  # Esse serviço pode rodar apenas nos workers
+    networks:
+      - app_network
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./:/app
+    environment:
+      - env=production
+      - DATABASE_URL=postgresql://postgres:$123456@${HOST_DB}:$5431/$cbo_db
+    depends_on:
+      - cbo_db
+      # - solr 
+
+networks:
+  app_network:
+
+volumes:
+  pgdata: {}
+  # data_solar:
