@@ -1,4 +1,4 @@
-from flask_restful import Resource
+from flask_restful import Resource, marshal
 from flask import request
 import csv
 import json
@@ -6,23 +6,42 @@ import requests
 import io
 
 from helpers.database import db
-from models.Ocupacao import Ocupacao
+from models.Ocupacao import Ocupacao, pagination_ocupacao_fields
 from helpers.config.solr import URL_SOLR
 
-def dataset_ocupacao_csv(file):
-    data = []
-    stream = io.StringIO(file.stream.read().decode("ISO-8859-1"))
-    reader = csv.reader(stream)
-    next(reader, None)
-    for row in reader:
-        spliter = row[0].split(";")
-        data.append(Ocupacao(
-            id=int(spliter[0]),
-            titulo=str(spliter[1])
-        ))
-    return data
+class OcupacaoResource(Resource):
+    def get(self):
+
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
+        ocupacoes_paginate = Ocupacao.query.paginate(page=page, per_page=per_page, error_out=False)
+        return marshal({
+            "total": ocupacoes_paginate.total,
+            "pages": ocupacoes_paginate.pages,
+            "current_page": ocupacoes_paginate.page,
+            "per_page": ocupacoes_paginate.per_page,
+            "has_next": ocupacoes_paginate.has_next,
+            "has_prev": ocupacoes_paginate.has_prev,
+            "ocupacoes": ocupacoes_paginate.items
+        }, pagination_ocupacao_fields), 200 
 
 class InsertOcupacoes(Resource):
+
+    @staticmethod
+    def dataset_ocupacao_csv(file):
+        data = []
+        stream = io.StringIO(file.stream.read().decode("ISO-8859-1"))
+        reader = csv.reader(stream)
+        next(reader, None)
+        for row in reader:
+            spliter = row[0].split(";")
+            data.append(Ocupacao(
+                id=int(spliter[0]),
+                titulo=str(spliter[1])
+            ))
+        return data
+
     def post(self):
         if "file" not in request.files:
             return {"message":"Arquivo não enviado em file!"}, 400
@@ -35,7 +54,7 @@ class InsertOcupacoes(Resource):
             return {"message": "Não selecionado"}, 400
         
         try:
-            ocupacoes = dataset_ocupacao_csv(file)
+            ocupacoes = self.dataset_ocupacao_csv(file)
             db.session.add_all(ocupacoes)
             db.session.commit()
             return {"message":"Dados inseridos com sucesso!"}, 200
@@ -53,7 +72,6 @@ class UpSolr(Resource):
             ocupacoes.append({"id":ocupacao.id, "titulo":ocupacao.titulo})
 
         SOLR_URL = f"{URL_SOLR}/update?commit=true"
-        print(SOLR_URL)
 
         headers = {"Content-Type": "application/json"}
         response = requests.post(SOLR_URL, data=json.dumps(ocupacoes), headers=headers)
@@ -79,4 +97,3 @@ class BuscadorOcupacoes(Resource):
             return response.json(), 200
         else:
             return {"erro": "Falha na busca"}, 500
-

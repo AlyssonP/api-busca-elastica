@@ -25,11 +25,10 @@ services:
   api_busca:
     container_name: api_busca
     build:
-      context: .
       dockerfile: api.Dockerfile
     image: api_busca
     ports:
-      - "5050:5000"
+      - "5000:5000"
     volumes:
       - ./:/app
     environment:
@@ -38,5 +37,5 @@ services:
       - cbo_db
 
 volumes:
-  pgdata: {}
+  pgdata:
   data_solar:

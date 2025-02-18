@@ -1,6 +1,5 @@
 services:    
   cbo_db:
-    container_name: cbo_db
     image: postgres:15
     deploy:
       replicas: 1
@@ -12,7 +11,7 @@ services:
     networks:
       - app_network
     ports:
-      - "5431:5432"
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: 123456
       POSTGRES_USER: postgres
@@ -20,30 +19,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  # solr:
-  #   container_name: solr
-  #   image: solr
-  #   deploy:
-  #     replicas: 1
-  #     placement:
-  #       constraints:
-  #         - "node.role==manager"
-  #   networks:
-  #     - app_network
-  #   ports:
-  #    - "8983:8983"
-  #   volumes:
-  #     - data_solar:/var/solr
-  #   command:
-  #     - solr-precreate
-  #     - cbo
-
   api_busca:
-    container_name: api_busca
-    build:
-      context: .
-      dockerfile: ../api.Dockerfile
-    image: api_busca
+    image: alyssonp/api_busca_elastica:1.0
     deploy:
       mode: replicated
       replicas: 3
@@ -52,19 +29,18 @@ services:
     networks:
       - app_network
     ports:
-      - "5050:5000"
+      - "5000:5000"
     volumes:
       - ./:/app
     environment:
-      - env=production
-      - DATABASE_URL=postgresql://postgres:$123456@${HOST_DB}:$5431/$cbo_db
+      - HOST_DB=Null
+      - DATABASE_URL=postgresql://postgres:123456@${HOST_DB}:5432/cbo_db
+      - URL_SOLR=Null
     depends_on:
       - cbo_db
-      # - solr 
 
 networks:
   app_network:
 
 volumes:
-  pgdata: {}
-  # data_solar:
+  pgdata:
