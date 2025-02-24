@@ -12,5 +12,5 @@ RUN pip install --upgrade pip && \
 
 EXPOSE 5000
 
-#CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
-CMD ["uwsgi", "--ini", "uwsgi.ini"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+#CMD ["uwsgi", "--ini", "uwsgi.ini"]

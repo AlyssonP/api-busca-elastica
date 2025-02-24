@@ -1,4 +1,6 @@
-services:    
+version: '3.8'
+
+services:
   cbo_db:
     image: postgres:15
     deploy:
@@ -6,18 +8,20 @@ services:
       restart_policy:
         condition: on-failure
       placement:
-        constraints:
-          - "node.role==manager"  # Banco de dados só no nó manager
+        constraints: [node.role == manager] # Banco de dados só no nó manager
     networks:
       - app_network
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: 123456
       POSTGRES_USER: postgres
       POSTGRES_DB: cbo_db
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cbo_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api_busca:
     image: alyssonp/api_busca_elastica:1.0
@@ -26,21 +30,29 @@ services:
       replicas: 3
       restart_policy:
         condition: on-failure
+      placement:
+        constraints: [node.role != manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
     networks:
       - app_network
     ports:
       - "80:5000"
-    volumes:
-      - ./:/app
     environment:
-      - HOST_DB=Null
-      - DATABASE_URL=postgresql://postgres:123456@cbo_db:5432/cbo_db
-      - URL_SOLR=Null
-    depends_on:
-      - cbo_db
+      DATABASE_URL: postgresql://postgres:123456@cbo_db:5432/cbo_db
+      URL_SOLR: Null
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"] # Substitua pelo endpoint de healthcheck da sua API
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   app_network:
+    driver: overlay
 
 volumes:
   pgdata:
+    driver: local

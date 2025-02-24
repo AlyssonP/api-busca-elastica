@@ -5,12 +5,11 @@ import os
 from helpers.database import db
 from helpers.cors import cors
 from helpers.api import api
-import models
 
-if(os.environ.get("env")==None):
-    load_dotenv(".env.development")
-else:
+if(os.environ.get("env")=="production"):
     load_dotenv(".env.production")
+elif(os.environ.get("env")=="development"):
+    load_dotenv(".env.development")
 
 app = Flask(__name__)
 
