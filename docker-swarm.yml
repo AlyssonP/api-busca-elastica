@@ -29,12 +29,12 @@ services:
     networks:
       - app_network
     ports:
-      - "5000:5000"
+      - "80:5000"
     volumes:
       - ./:/app
     environment:
       - HOST_DB=Null
-      - DATABASE_URL=postgresql://postgres:123456@${HOST_DB}:5432/cbo_db
+      - DATABASE_URL=postgresql://postgres:123456@cbo_db:5432/cbo_db
       - URL_SOLR=Null
     depends_on:
       - cbo_db
