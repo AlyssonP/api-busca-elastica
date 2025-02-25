@@ -12,21 +12,16 @@ services:
     networks:
       - app_network
     ports:
-      - "5431:5432"
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: 123456
       POSTGRES_USER: postgres
       POSTGRES_DB: cbo_db
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d cbo_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   api_busca:
-    image: alyssonp/api_busca_elastica:1.0
+    image: alyssonp/api_busca_elastica:1.2
     deploy:
       mode: replicated
       replicas: 3
@@ -34,22 +29,13 @@ services:
         condition: on-failure
       placement:
         constraints: [node.role != manager]
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
     networks:
       - app_network
     ports:
       - "80:5000"
     environment:
-      DATABASE_URL: postgresql://postgres:123456@cbo_db:5432/cbo_db
+      DATABASE_URL: postgresql://postgres:123456@host_db:5432/cbo_db
       URL_SOLR: Null
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"] # Substitua pelo endpoint de healthcheck da sua API
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 networks:
   app_network:
