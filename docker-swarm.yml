@@ -11,6 +11,8 @@ services:
         constraints: [node.role == manager] # Banco de dados só no nó manager
     networks:
       - app_network
+    ports:
+      - "5431:5432"
     environment:
       POSTGRES_PASSWORD: 123456
       POSTGRES_USER: postgres
@@ -44,7 +46,7 @@ services:
       DATABASE_URL: postgresql://postgres:123456@cbo_db:5432/cbo_db
       URL_SOLR: Null
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"] # Substitua pelo endpoint de healthcheck da sua API
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"] # Substitua pelo endpoint de healthcheck da sua API
       interval: 10s
       timeout: 5s
       retries: 5
